@@ -1,15 +1,519 @@
-<!doctype html>
-<html lang="zh-CN">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="description" content="DreamFoley">
+    <meta property="og:title" content="DreamFoley"/>
+    <meta property="og:description" content="DreamFoley: Scalable VLMs for High-Fidelity Video-to-Audio Generation"/>
+    <meta property="og:url" content="https://sakura2233565548.github.io/DreamFoley/"/>
+    <meta property="og:image" content="static/image/bytedance.png"/>
+    <meta property="og:image:width" content="1200"/>
+    <meta property="og:image:height" content="630"/>
+    <meta name="twitter:title" content="DreamFoley">
+    <meta name="twitter:description" content="DreamFoley: Scalable VLMs for High-Fidelity Video-to-Audio Generation">
+    <meta name="twitter:image" content="static/images/bytedance.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="keywords" content="Video-to-Audio">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>DreamFoley</title>
+    <!-- <link rel="apple-touch-icon" sizes="180x180" href="static/image/favicon_io/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="static/image/favicon_io/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="static/image/favicon_io/favicon-16x16.png"> -->
+    <link rel="manifest" href="static/image/favicon_io/site.webmanifest">
+    <link href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="static/css/bulma.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+    <link rel="stylesheet" href="static/css/index.css">
+    <link rel="preload" href="static/css/bulma.min.css" as="style">
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" as="style">
+    <link rel="preload" href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css" as="style">
+    <link rel="preload" href="static/css/index.css" as="style">
     <style>
-      body { font-family: system-ui, -apple-system, Segoe UI, Roboto; padding: 2rem; }
+        .big-video, .mid-video, .small-video {
+            display: block;
+            background: #fff;
+            object-fit: cover;
+            object-position: right bottom;
+            width: 100%;
+            height: 100%;
+            margin-bottom: 8px;
+        }
+        .big-video { width: 650px; height: 370px; }
+        .mid-video, .small-video { width: 850px; height: 500px; }
+        .video-item {
+            display: flex;
+            justify-content: flex-start;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            margin-bottom: 2em;
+        }
+        .video-item .column {
+            width: 50%;
+            padding: 0 10px 0 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .video-item .column:only-child {
+            width: 50%;
+        }
+        .caption {
+            margin-top: 8px;
+            font-size: 1em;
+            text-align: left;
+            width: 100%;
+        }
+        @media (max-width: 1000px) {
+            .big-video, .mid-video, .small-video { width: 100%; height: auto; }
+            .video-item { flex-direction: column; }
+            .video-item .column { width: 100%; padding: 0; margin-bottom: 1em;}
+        }
     </style>
-  </head>
-  <body>
-    <h1>Hello GitHub Pages</h1>
-    <p>这是一个示例页面。</p>
-  </body>
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-JWX46EFS5E"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-JWX46EFS5E');
+    </script>
+</head>
+<body>
+    <nav class="navbar" role="navigation" aria-label="main navigation">
+        <div class="navbar-brand">
+            <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false">
+                <span aria-hidden="true"></span>
+                <span aria-hidden="true"></span>
+                <span aria-hidden="true"></span>
+            </a>
+        </div>
+    </nav>
+
+    <section class="hero">
+        <div class="hero-body">
+            <div class="container is-max-desktop">
+                <div class="columns is-centered">
+                    <div class="column has-text-centered">
+                        <h1 class="title is-1 publication-title">DreamFoley: Scalable VLMs for High-Fidelity Video-to-Audio Generation</h1>
+                        <div class="is-size-5 publication-authors">
+                            <span class="author-block">Fu Li<sup>*</sup>, Weichao Zhao<sup>*</sup>, You Li, Zhichao Zhou, Dongliang He<sup>&dagger;</sup></span>
+                        </div>
+                        <div class="is-size-5 publication-authors">
+                            <span class="author-block"><strong>Bytedance Intelligent Creation Lab</strong></span>
+                        </div>
+                        <div class="column has-text-centered">
+                            <small>
+                                <sup>*</sup> Equal contribution &nbsp;&nbsp;
+                                <sup>&dagger;</sup> Project leader
+                            </small>
+                        </div>
+                        <div class="column has-text-centered">
+                            <div class="publication-links">
+                                <!-- <span class="link-block">
+                                    <a href="https://app.klingai.com/" target="_blank"
+                                        class="external-link button is-normal is-rounded is-dark">
+                                        <span class="icon"><i class="fas fa-rocket"></i></span>
+                                        <span>Product</span>
+                                    </a>
+                                </span>
+                                <span class="link-block">
+                                    <a href="https://github.com/klingfoley/Kling-Foley" target="_blank"
+                                        class="external-link button is-normal is-rounded is-dark">
+                                        <span class="icon"><i class="fab fa-github"></i></span>
+                                        <span>GitHub</span>
+                                    </a>
+                                </span>
+                                <span class="link-block">
+                                    <a href="https://arxiv.org/abs/2506.19774" target="_blank"
+                                        class="external-link button is-normal is-rounded is-dark">
+                                        <span class="icon"><i class="ai ai-arxiv"></i></span>
+                                        <span>arXiv</span>
+                                    </a>
+                                </span> -->
+                                <span class="link-block">
+                                    <a href="https://huggingface.co/datasets/Zhaowc/DreamFoley" target="_blank"
+                                        class="external-link button is-normal is-rounded is-dark">
+                                        <span class="icon"><i class="fas fa-chart-bar"></i></span>
+                                        <span>Benchmark</span>
+                                    </a>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Teaser Videos -->
+    <!-- <section class="section">
+        <div class="container is-max-desktop">
+            <div class="columns is-vcentered is-centered">
+                <div class="column">
+                    <video class="video-player big-video" controls preload="none" poster="https://p2-kling.klingai.com/kcdn/cdn-kcdn112595/00.webp" data-src="https://p2-kling.klingai.com/kcdn/cdn-kcdn112595/00.mp4"></video>
+                </div>
+                <div class="column">
+                    <video class="video-player big-video" controls preload="none" poster="https://p2-kling.klingai.com/kcdn/cdn-kcdn112595/01.webp" data-src="https://p2-kling.klingai.com/kcdn/cdn-kcdn112595/01.mp4"></video>
+                </div>
+            </div>
+        </div>
+    </section> -->
+
+    <!-- Method -->
+    <section class="section hero is-light">
+        <div class="container is-max-desktop">
+            <div class="columns is-centered has-text-centered">
+                <div class="column is-four-fifths">
+                    <h2 class="title is-3">Method</h2>
+                    <div style="display: flex; justify-content: center; align-items: center;">
+                        <img src="content/architecture.png" alt="Method" style="width: 100%; height: 100%;"/>
+                    </div>
+                    <div class="content has-text-justified">
+                        <p style="font-size: 1.2em;">
+                            We propose DreamFoley, a autoregressive multimodal Video-to-Audio generation model. Given an input video and an optional text prompt, the model synthesizes high-fidelity audio that is semantically aligned and temporally synchronized with the video content, encompassing elements such as sound effects and background music.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Data Production -->
+    <section class="section hero is-light">
+        <div class="container is-max-desktop">
+            <div class="columns is-centered has-text-centered">
+                <div class="column is-four-fifths">
+                    <h2 class="title is-3">Data Production</h2>
+                    <div style="display: flex; justify-content: center; align-items: center;">
+                        <img src="content/data_production.png" alt="Method" style="width: 100%; height: 100%;"/>
+                    </div>
+                    <div class="content has-text-justified">
+                        <p style="font-size: 1.2em;">
+                        We construct an efficient data production pipeline. The whole pipeline consists of three main components: data standardization, quality assessment and caption annotation.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- Performance Comparison -->
+    <section class="section hero is-light">
+        <div class="container is-max-desktop">
+            <div class="columns is-centered has-text-centered">
+                <div class="column is-four-fifths">
+                    <h2 class="title is-3">Performance Comparison</h2>
+                    <div style="display: flex; justify-content: center; align-items: center;">
+                        <img src="content/vggsound_comparison.png" alt="Method" style="width: 100%; height: 100%;"/>
+                    </div>
+                    <div class="content has-text-justified">
+                        <p style="font-size: 1.2em; text-align: center; ">
+                        Comparison with state-of-the-art methods on VGGSound-Test.
+                        </p>
+                    </div>
+                    <div style="display: flex; justify-content: center; align-items: center;">
+                        <img src="content/kling-eval_comparison.png" alt="Method" style="width: 100%; height: 100%;"/>
+                    </div>
+                    <div class="content has-text-justified">
+                        <p style="font-size: 1.2em; text-align: center; ">
+                        Comparison with state-of-the-art methods on Kling-Eval.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+
+    <!-- Generated Videos Showcase -->
+    <section class="hero is-small is-light">
+        <div class="hero-body">
+            <div class="container">
+                <h2 class="title is-3">DreamFoley Demo Gallery</h2>
+                <!-- Animal Sound Effect -->
+                <div style="display: flex; justify-content: center;align-items: center; height: 80px;">
+                    <h3 class="title is-4">Animal Sound Effect</h3>
+                </div>
+                <div class="video-item">
+                    <div class="column">
+                        <video class="video-player big-video" controls preload="none" poster="content/images/-vZ-_4oFCzs_000017.png" data-src="content/videos/animal/-vZ-_4oFCzs_000017.mp4"></video>
+                        <p class="caption">The sound of a black cat meowing in a lush green outdoor setting.</p>
+                    </div>
+                    <div class="column">
+                        <video class="video-player big-video" controls preload="none" poster="content/images/899.png" data-src="content/videos/animal/899.mp4"></video>
+                        <p class="caption">The sound of a tiger growling behind bars in an enclosure.</p>
+                    </div>
+                </div>
+                <div class="video-item">
+                    <div class="column">
+                        <video class="video-player big-video" controls preload="none" poster="content/images/mm48vh_TmMI_000558.png" data-src="content/videos/animal/mm48vh_TmMI_000558.mp4"></video>
+                        <p class="caption">The sound of the digital battle scene with intense storm-like sound effects.</p>
+                    </div>
+                    <div class="column">
+                        <video class="video-player big-video" controls preload="none" poster="content/images/MNEuyIAtj3U_000172.png" data-src="content/videos/animal/MNEuyIAtj3U_000172.mp4"></video>
+                        <p class="caption">The sound of cows in the grassy outdoor setting.</p>
+                    </div>
+                </div>
+                <div class="video-item">
+                    <div class="column">
+                        <video class="video-player big-video" controls preload="none" poster="content/images/ZZoM-leT_0U_000041.png" data-src="content/videos/animal/ZZoM-leT_0U_000041.mp4"></video>
+                        <p class="caption">The sound of a dog barking in the outdoor enclosure.</p>
+                    </div>
+                </div>
+
+
+                <!-- Object Sound Effect -->
+                <div style="display: flex; justify-content: center;align-items: center; height: 80px;">
+                    <h3 class="title is-4">Object Sound Effect</h3>
+                </div>
+                <div class="video-item">
+                    <div class="column">
+                        <video class="video-player big-video" controls preload="none" poster="content/images/__8UJxW0aOQ_000002.png" data-src="content/videos/object/__8UJxW0aOQ_000002.mp4"></video>
+                        <p class="caption">The sound of a car door being repeatedly opened and closed.</p>
+                    </div>
+                    <div class="column">
+                        <video class="video-player big-video" controls preload="none" poster="content/images/228.png" data-src="content/videos/object/228.mp4"></video>
+                        <p class="caption">The sound of objects colliding as hands manipulate vibrant blue and purple materials.</p>
+                    </div>
+                </div>
+                <div class="video-item">
+                    <div class="column">
+                        <video class="video-player big-video" controls preload="none" poster="content/images/298.png" data-src="content/videos/object/298.mp4"></video>
+                        <p class="caption">The sound of a game protagonist jumping, swinging, and shouting in a swamp-like environment.</p>
+                    </div>
+                    <div class="column">
+                        <video class="video-player big-video" controls preload="none" poster="content/images/720.png" data-src="content/videos/object/720.mp4"></video>
+                        <p class="caption">The sound of cookie crumbles and ice cubes being added to the blender cups and then poured into the plastic cups.</p>
+                    </div>
+                </div>
+                <div class="video-item">
+                    <div class="column">
+                        <video class="video-player big-video" controls preload="none" poster="content/images/2164.png" data-src="content/videos/object/2164.mp4"></video>
+                        <p class="caption">The sound of firecrackers and fireworks bursting in the sky during a vibrant display.</p>
+                    </div>
+                    <div class="column">
+                        <video class="video-player big-video" controls preload="none" poster="content/images/6192.png" data-src="content/videos/object/6192.mp4"></video>
+                        <p class="caption">The sound of a pen writing on a grid-lined notebook.</p>
+                    </div>
+                </div>
+                <div class="video-item">
+                    <div class="column">
+                        <video class="video-player big-video" controls preload="none" poster="content/images/9743.png" data-src="content/videos/object/9743.mp4"></video>
+                        <p class="caption">The sound of machine gun fire amidst background noise.</p>
+                    </div>
+                    <div class="column">
+                        <video class="video-player big-video" controls preload="none" poster="content/images/10088.png" data-src="content/videos/object/10088.mp4"></video>
+                        <p class="caption">The sound of a woodworking tool shaping a piece of wood.</p>
+                    </div>
+                </div>
+                <div class="video-item">
+                    <div class="column">
+                        <video class="video-player big-video" controls preload="none" poster="content/images/10435.png" data-src="content/videos/object/10435.mp4"></video>
+                        <p class="caption">The sound of a song playing while a person prepares two beverages by pouring liquids, adding ice, and stirring.</p>
+                    </div>
+                    <div class="column">
+                        <video class="video-player big-video" controls preload="none" poster="content/images/27109.png" data-src="content/videos/object/27109.mp4"></video>
+                        <p class="caption">The sound of a Minecraft player's actions, including surface contact and generic impacts, along with background noise.</p>
+                    </div>
+                </div>
+                <div class="video-item">
+                    <div class="column">
+                        <video class="video-player big-video" controls preload="none" poster="content/images/30830.png" data-src="content/videos/object/30830.mp4"></video>
+                        <p class="caption">The sound of an M13 (300 Conversion) firearm being fired and reloaded.</p>
+                    </div>
+                    <div class="column">
+                        <video class="video-player big-video" controls preload="none" poster="content/images/38951.png" data-src="content/videos/object/38951.mp4"></video>
+                        <p class="caption">The sound of a motorcycle engine accelerating and revving as it navigates a wet, winding road.</p>
+                    </div>
+                </div>
+                <div class="video-item">
+                    <div class="column">
+                        <video class="video-player big-video" controls preload="none" poster="content/images/mhmVWT-tH1U_000139.png" data-src="content/videos/object/mhmVWT-tH1U_000139.mp4"></video>
+                        <p class="caption">The sound of a person flipping through a newspaper.</p>
+                    </div>
+                    <div class="column">
+                        <video class="video-player big-video" controls preload="none" poster="content/images/mnH8IKZXmMs_000257.png" data-src="content/videos/object/mnH8IKZXmMs_000257.mp4"></video>
+                        <p class="caption">The sound of crowd cheering at the squash match.</p>
+                    </div>
+                </div>
+                    
+                    
+               
+                <!-- Tool Sound Effect -->
+                <div style="display: flex; justify-content: center;align-items: center; height: 80px;">
+                    <h3 class="title is-4">Tool Sound Effect</h3>
+                </div>
+                <div class="video-item">
+                    <div class="column">
+                        <video class="video-player big-video" controls preload="none" poster="content/images/-r3nM90RCNs_000161.png" data-src="content/videos/tools/-r3nM90RCNs_000161.mp4"></video>
+                        <p class="caption">The sound of a person sharpening a sword with a sharpening stone.</p>
+                    </div>
+                    <div class="column">
+                        <video class="video-player big-video" controls preload="none" poster="content/images/151.png" data-src="content/videos/tools/151.mp4"></video>
+                        <p class="caption">The sound of a large yellow excavator's mechanisms and bucket striking a two-story white house during demolition.</p>
+                    </div>
+                </div>
+                <div class="video-item">
+                    <div class="column">
+                        <video class="video-player big-video" controls preload="none" poster="content/images/8907.png" data-src="content/videos/tools/8907.mp4"></video>
+                        <p class="caption">The sound of a person sawing logs in a forested area.</p>
+                    </div>
+                    <div class="column">
+                        <video class="video-player big-video" controls preload="none" poster="content/images/10421.png" data-src="content/videos/tools/10421.mp4"></video>
+                        <p class="caption">The sound of an engine running as a person uses a string trimmer to maintain a garden.</p>
+                    </div>
+                </div>
+                <div class="video-item">
+                    <div class="column">
+                        <video class="video-player big-video" controls preload="none" poster="content/images/27034.png" data-src="content/videos/tools/27034.mp4"></video>
+                        <p class="caption">The sound of a person typing on a vintage-style mechanical keyboard.</p>
+                    </div>
+                    <div class="column">
+                        <video class="video-player big-video" controls preload="none" poster="content/images/27042.png" data-src="content/videos/tools/27042.mp4"></video>
+                        <p class="caption">The sound of hands typing on a keyboard with black keys and pink accents.</p>
+                    </div>
+                </div>
+
+
+                <!-- Traffic Sound Effect -->
+                <div style="display: flex; justify-content: center;align-items: center; height: 80px;">
+                    <h3 class="title is-4">Traffic Sound Effect</h3>
+                </div>
+                <div class="video-item">
+                    <div class="column">
+                        <video class="video-player big-video" controls preload="none" poster="content/images/-2-wdcN5vOw_000017.png" data-src="content/videos/traffic/-2-wdcN5vOw_000017.mp4"></video>
+                        <p class="caption">The sound of a train moving along the tracks as it departs from the station.</p>
+                    </div>
+                    <div class="column">
+                        <video class="video-player big-video" controls preload="none" poster="content/images/238.png" data-src="content/videos/traffic/238.mp4"></video>
+                        <p class="caption">The sound of a helicopter's rotors spinning up as it prepares for takeoff.</p>
+                    </div>
+                </div>
+                <div class="video-item">
+                    <div class="column">
+                        <video class="video-player big-video" controls preload="none" poster="content/images/32426.png" data-src="content/videos/traffic/32426.mp4"></video>
+                        <p class="caption">The sound of cars passing by and a car horn honking during a scenic drive</p>
+                    </div>
+                    <div class="column">
+                        <video class="video-player big-video" controls preload="none" poster="content/images/36242.png" data-src="content/videos/traffic/36242.mp4"></video>
+                        <p class="caption">The sound of a Porsche 911 GT3 Cup engine accelerating and revving as it navigates a racetrack.</p>
+                    </div>
+                </div>
+                <div class="video-item">
+                    <div class="column">
+                        <video class="video-player big-video" controls preload="none" poster="content/images/mt6Pa7pBz_A_000210.png" data-src="content/videos/traffic/mt6Pa7pBz_A_000210.mp4"></video>
+                        <p class="caption">The sound of a steam locomotive's engine as it pulls train cars along the track.</p>
+                    </div>
+                </div>
+
+                <!-- Voice Sound Effect -->
+                <div style="display: flex; justify-content: center;align-items: center; height: 80px;">
+                    <h3 class="title is-4">Voice Sound Effect</h3>
+                </div>
+                <div class="video-item">
+                    <div class="column">
+                        <video class="video-player big-video" controls preload="none" poster="content/images/-7tYmeOmsRg_000180.png" data-src="content/videos/voice/-7tYmeOmsRg_000180.mp4"></video>
+                        <p class="caption">The sound of a person crunching and chewing while eating fried snacks on skewers.</p>
+                    </div>
+                    <div class="column">
+                        <video class="video-player big-video" controls preload="none" poster="content/images/MM78BP5nkUs_000417.png" data-src="content/videos/voice/MM78BP5nkUs_000417.mp4"></video>
+                        <p class="caption">The sound of a person chewing while eating custard apple.</p>
+                    </div>
+                </div>
+                <div class="video-item">
+                    <div class="column">
+                        <video class="video-player big-video" controls preload="none" poster="content/images/8381.png" data-src="content/videos/voice/8381.mp4"></video>
+                        <p class="caption">The sound of footsteps on the snow in a serene winter forest.</p>
+                    </div>
+                </div>
+
+
+
+                <!-- Music Sound Effect -->
+                <div style="display: flex; justify-content: center;align-items: center; height: 80px;">
+                    <h3 class="title is-4">Music Sound Effect</h3>
+                </div>
+                <div class="video-item">
+                    <div class="column">
+                        <video class="video-player big-video" controls preload="none" poster="content/images/_ZC6yk5iE1I_000026.png" data-src="content/videos/music/_ZC6yk5iE1I_000026.mp4"></video>
+                        <p class="caption">The sound of a person playing a trumpet with clear, melodic, harmonious music.</p>
+                    </div>
+                    <div class="column">
+                        <video class="video-player big-video" controls preload="none" poster="content/images/-crF-0Z7l3o_000447.png" data-src="content/videos/music/-crF-0Z7l3o_000447.mp4"></video>
+                        <p class="caption">The sound of a person playing the bassoon with piano in the background.</p>
+                    </div>
+                </div>
+                <div class="video-item">
+                    <div class="column">
+                        <video class="video-player big-video" controls preload="none" poster="content/images/-GW1J75oAKU_000304.png" data-src="content/videos/music/-GW1J75oAKU_000304.mp4"></video>
+                        <p class="caption">The sound of a violin playing a continuous melody indoors.</p>
+                    </div>
+                    <div class="column">
+                        <video class="video-player big-video" controls preload="none" poster="content/images/-HMEhGV38GM_000216.png" data-src="content/videos/music/-HMEhGV38GM_000216.mp4"></video>
+                        <p class="caption">The sound of a person playing three conga drums indoors.</p>
+                    </div>
+                </div>
+                <div class="video-item">
+                    <div class="column">
+                        <video class="video-player big-video" controls preload="none" poster="content/images/-OAyRsvFGgc_000030.png" data-src="content/videos/music/-OAyRsvFGgc_000030.mp4"></video>
+                        <p class="caption">The sound of a person playing electric guitar, demonstrating delay effect with a guitar solo.</p>
+                    </div>
+                    <div class="column">
+                        <video class="video-player big-video" controls preload="none" poster="content/images/zMBLINM7_hY_000243.png" data-src="content/videos/music/zMBLINM7_hY_000243.mp4"></video>
+                        <p class="caption">The sound of an orchestra performing a grand classical piece with brass instruments.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="columns is-centered">
+                <div class="column is-8"></div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // 懒加载视频，仅在可见时加载 src
+        document.addEventListener("DOMContentLoaded", function() {
+            var videos = document.querySelectorAll('video[data-src]');
+            if ('IntersectionObserver' in window) {
+                let observer = new IntersectionObserver(function(entries, observer) {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            let video = entry.target;
+                            if (!video.src) {
+                                video.src = video.getAttribute('data-src');
+                            }
+                            observer.unobserve(video);
+                        }
+                    });
+                }, {threshold: 0.1});
+                videos.forEach(video => observer.observe(video));
+            } else {
+                // 兼容旧浏览器，全部加载
+                videos.forEach(video => {
+                    video.src = video.getAttribute('data-src');
+                });
+            }
+
+            // 保证同一时刻只播放一个视频
+            videos.forEach(function (video) {
+                video.addEventListener('play', function () {
+                    videos.forEach(function (otherVideo) {
+                        if (otherVideo !== video) {
+                            otherVideo.pause();
+                        }
+                    });
+                }, false);
+            });
+        });
+    </script>
+</body>
 </html>
